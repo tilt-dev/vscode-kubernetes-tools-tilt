@@ -21,6 +21,11 @@ class TiltResourceNode implements k8s.ClusterExplorerV1.Node {
       vscode.TreeItemCollapsibleState.None
     );
     treeItem.tooltip = this.name;
+    treeItem.command = {
+      title: "Open resource",
+      command: "tilt.openResource",
+      arguments: [this.name]
+    };
     return treeItem;
   }
 }
@@ -58,6 +63,7 @@ type TiltView = {
 
 class TiltRootNode implements k8s.ClusterExplorerV1.Node {
   async getChildren(): Promise<k8s.ClusterExplorerV1.Node[]> {
+    // TODO(dmiller): error handling
     return fetch(`http://${TILT_URL}/api/view`)
       .then(r => r.json())
       .then((j: TiltView) => {
@@ -96,7 +102,21 @@ class TiltNodeContributor implements k8s.ClusterExplorerV1.NodeContributor {
 
 const TILT_NODE_CONTRIBUTOR = new TiltNodeContributor();
 
+const openResource = (name?: string) => {
+  if (name) {
+    vscode.commands.executeCommand(
+      "vscode.open",
+      vscode.Uri.parse(`http://${TILT_URL}/r/${name}`)
+    );
+  }
+};
+
 export async function activate(context: vscode.ExtensionContext) {
+  const command = "tilt.openResource";
+  context.subscriptions.push(
+    vscode.commands.registerCommand(command, openResource)
+  );
+
   const explorer = await k8s.extension.clusterExplorer.v1;
   if (!explorer.available) {
     console.log("Unable to register node contributor: " + explorer.reason);
