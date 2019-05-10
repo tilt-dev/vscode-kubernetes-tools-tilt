@@ -77,6 +77,7 @@ class TiltRootNode implements k8s.ClusterExplorerV1.Node {
       vscode.TreeItemCollapsibleState.Collapsed
     );
     treeItem.tooltip = "Explore Tilt resources";
+    treeItem.iconPath = vscode.Uri.parse("https://tilt.dev/favicon.ico");
     return treeItem;
   }
 }
