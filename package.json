@@ -10,7 +10,7 @@
 		"Other"
 	],
 	"activationEvents": [
-    "onView:extension.vsKubernetesExplorer"
+		"onView:extension.vsKubernetesExplorer"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -26,12 +26,15 @@
 	"devDependencies": {
 		"@types/mocha": "^2.2.42",
 		"@types/node": "^10.12.21",
+		"@types/node-fetch": "^2.3.3",
 		"prettier": "1.17.0",
 		"tslint": "^5.12.1",
 		"typescript": "^3.3.1",
 		"vscode": "^1.1.28"
 	},
 	"dependencies": {
-		"vscode-kubernetes-tools-api": "^1.0.0"
+		"node-fetch": "^2.5.0",
+		"vscode-kubernetes-tools-api": "^1.0.0",
+		"ws": "^7.0.0"
 	}
 }

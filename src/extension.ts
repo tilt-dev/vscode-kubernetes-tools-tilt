@@ -1,15 +1,74 @@
 import * as vscode from "vscode";
 import * as k8s from "vscode-kubernetes-tools-api";
+import fetch from "node-fetch";
 
-class TiltNode implements k8s.ClusterExplorerV1.Node {
+const TILT_URL = "localhost:10350";
+
+class TiltResourceNode implements k8s.ClusterExplorerV1.Node {
+  public name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
   async getChildren(): Promise<k8s.ClusterExplorerV1.Node[]> {
-    return []; // no children in this case
+    return [];
+  }
+
+  getTreeItem(): vscode.TreeItem {
+    const treeItem = new vscode.TreeItem(
+      this.name,
+      vscode.TreeItemCollapsibleState.None
+    );
+    treeItem.tooltip = this.name;
+    return treeItem;
+  }
+}
+
+type Resource = {
+  Name: string;
+  CombinedLog: string;
+  BuildHistory: Array<any>;
+  CrashLog: string;
+  CurrentBuild: any;
+  DirectoriesWatched: Array<any>;
+  Endpoints: Array<string>;
+  PodID: string;
+  IsTiltfile: boolean;
+  LastDeployTime: string;
+  PathsWatched: Array<string>;
+  PendingBuildEdits: any;
+  PendingBuildReason: number;
+  ResourceInfo: {
+    PodCreationTime: string;
+    PodLog: string;
+    PodName: string;
+    PodRestarts: number;
+    PodUpdateStartTime: string;
+    YAML: string;
+  };
+  RuntimeStatus: string;
+  ShowBuildStatus: boolean;
+};
+
+type TiltView = {
+  Log: string;
+  Resources: Array<Resource>;
+};
+
+class TiltRootNode implements k8s.ClusterExplorerV1.Node {
+  async getChildren(): Promise<k8s.ClusterExplorerV1.Node[]> {
+    return fetch(`http://${TILT_URL}/api/view`)
+      .then(r => r.json())
+      .then((j: TiltView) => {
+        return j.Resources.map(r => new TiltResourceNode(r.Name));
+      });
   }
   // TODO(dmiller): customize this node to have the Tilt logo
   getTreeItem(): vscode.TreeItem {
     const treeItem = new vscode.TreeItem(
       "Tilt",
-      vscode.TreeItemCollapsibleState.None
+      vscode.TreeItemCollapsibleState.Collapsed
     );
     treeItem.tooltip = "Explore Tilt resources";
     return treeItem;
@@ -31,7 +90,7 @@ class TiltNodeContributor implements k8s.ClusterExplorerV1.NodeContributor {
   async getChildren(
     parent: k8s.ClusterExplorerV1.ClusterExplorerNode | undefined
   ): Promise<k8s.ClusterExplorerV1.Node[]> {
-    return [new TiltNode()];
+    return [new TiltRootNode()];
   }
 }
 
